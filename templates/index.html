@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>知识库</title>
+    <style>
+        .wx-table {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #c6c6c6 !important;
+            margin-bottom: 20px;
+        }
+
+        .wx-table th {
+            border-collapse: collapse;
+            border-right: 1px solid #c6c6c6 !important;
+            border-bottom: 1px solid #c6c6c6 !important;
+            background-color: #ddeeff !important;
+            padding: 5px 9px;
+            font-size: 14px;
+            font-weight: normal;
+            text-align: center;
+        }
+
+        .wx-table td {
+            border-collapse: collapse;
+            border-right: 1px solid #c6c6c6 !important;
+            border-bottom: 1px solid #c6c6c6 !important;
+            padding: 5px 9px;
+            font-size: 12px;
+            font-weight: normal;
+            text-align: left;
+            word-break: break-all;
+        }
+
+        .wx-table tr:nth-child(odd) {
+            background-color: #fff !important;
+        }
+
+        .wx-table tr:nth-child(even) {
+            background-color: #f8f8f8 !important;
+        }
+    </style>
+</head>
+<body>
+
+<div>
+    <form action="{{ request.url }}search" method="GET">
+        {% if question %}
+        <textarea name="question" rows="4" cols="50">{{ question }}</textarea>
+        {% else %}
+        <textarea name="question" rows="4" cols="50" placeholder="输入问题，点击生成提问"></textarea>
+        {% endif %}
+        <span>参考数</span>
+
+        {% if num %}
+        <input name="num" type="number" value="{{num}}"/>
+        {% else %}
+        <input name="num" type="number" value="4"/>
+        {% endif %}
+
+        <input type="submit" value="生成提问"/>
+    </form>
+</div>
+
+<table class="wx-table">
+    <tr>
+        <th>NO.</th>
+        <th>内容</th>
+        <th>文献</th>
+    </tr>
+    {% if results %}
+    {% set query_con = ["参考内容："] %}
+    {% for row in results %}
+    {% set source = row['metadata']['source'].split("\\")[-1] %}
+    {% set _ = query_con.append('\n\n' + row['page_content'] + '【参考文献：' + source + '】') %}
+    <tr>
+        <td> {{ loop.index }}</td>
+        <td> {{ row['page_content'] }}</td>
+        <td> {{ source }}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+</table>
+
+<div>
+    <button id="copy" data-clipboard-target="#full_question">复制</button> &nbsp; <span id="copy_success"></span>
+</div>
+<div>
+<textarea id="full_question" rows="50" cols="300">
+    请按以下参考内容回答这个问题：{{ question }}
+
+    {{ query_con|join|safe }}
+</textarea>
+</div>
+
+<script type="text/javascript" src="{{ url_for('static', filename='clipboard.min.js') }}"></script>
+<script type="text/javascript">
+    const clipboard = new ClipboardJS('#copy', {
+        text: function () {
+            return document.getElementById('full_question').value;
+        }
+    });
+
+    clipboard.on('success', function (e) {
+        document.getElementById('copy_success').innerHTML = "&#10003;"
+    });
+</script>
+</body>
+</html>
