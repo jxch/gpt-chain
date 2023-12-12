@@ -84,11 +84,12 @@
 </table>
 
 <div>
-    <button id="copy" data-clipboard-target="#full_question">复制</button> &nbsp; <span id="copy_success"></span>
+    <button id="copy" data-clipboard-target="#full_question">复制</button> &nbsp; <span id="copy_success"></span> &nbsp;
+    <span id="characterCount" style="color: grey">0 字</span>
 </div>
 <div>
-<textarea id="full_question" rows="50" cols="300">
-    请按以下参考内容回答这个问题：{{ question }}
+<textarea id="full_question" rows="50" cols="300" oninput="countCharacters(this)">
+    请合理参考以下参考内容回答这个问题：{{ question }}
 
     {{ query_con|join|safe }}
 </textarea>
@@ -104,7 +105,14 @@
 
     clipboard.on('success', function (e) {
         document.getElementById('copy_success').innerHTML = "&#10003;"
+        countCharacters(document.getElementById("full_question"))
     });
+
+    function countCharacters(textarea) {
+        const textLength = textarea.value.length;
+        document.getElementById("characterCount").innerHTML = textLength + " 字";
+    }
+    countCharacters(document.getElementById("full_question"))
 </script>
 </body>
 </html>
