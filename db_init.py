@@ -3,6 +3,7 @@ from langchain.document_loaders import DirectoryLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain.vectorstores import Chroma
+import os
 
 # 加载embedding
 embedding_model_dict = {
@@ -16,7 +17,7 @@ embedding_model_dict = {
 
 
 def load_documents(directory="documents"):
-    loader = DirectoryLoader(directory)
+    loader = DirectoryLoader(directory, recursive=True)
     documents = loader.load()
     text_spliter = CharacterTextSplitter(chunk_size=256, chunk_overlap=0)
     split_docs = text_spliter.split_documents(documents)
