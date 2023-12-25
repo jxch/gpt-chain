@@ -31,3 +31,15 @@ print("数据库加载完成.")
 def search(question, num=4):
     print(f"相似查询: {question}")
     return db.similarity_search(question, k=num)
+
+
+def search_contents(question, num=4):
+    results = search(question, num)
+
+    res = ''
+    for row in results:
+        source = row.metadata['source'].split("\\")[-1]
+        content = row.page_content
+        res = res + content + '【参考内容：' + source + '】\n\n'
+
+    return res
