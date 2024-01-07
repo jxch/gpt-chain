@@ -5,13 +5,12 @@ import proxy
 proxy.proxy()
 
 conn = http.client.HTTPSConnection("generativelanguage.googleapis.com")
-payload = json.dumps({
+key = "AIzaSyCzLBBh243bcKndgYuByv9PUygjMEaTSJk"
+
+param = {
     "contents": [
         {
             "parts": [
-                {
-                    "text": "帮我解析一下这个网页：https://github.com/google/generative-ai-python/issues/118"
-                }
             ]
         }
     ],
@@ -40,14 +39,19 @@ payload = json.dumps({
             "threshold": "BLOCK_MEDIUM_AND_ABOVE"
         }
     ]
-})
+}
+
 headers = {
     'Content-Type': 'application/json'
 }
-conn.request("POST", "/v1beta/models/gemini-pro:generateContent?key=AIzaSyCzLBBh243bcKndgYuByv9PUygjMEaTSJk", payload,
-             headers)
-res = conn.getresponse()
-data = res.read()
-print(data.decode("utf-8"))
 
-conn.close()
+
+def query(question):
+    param["contents"][0]["parts"].append({"text": question})
+    conn.request("POST", "/v1beta/models/gemini-pro:generateContent?key=" + key,
+                 json.dumps(param), headers)
+    res = conn.getresponse()
+    data = res.read()
+    text = eval(data.decode("utf-8"))["candidates"][0]["content"]["parts"][0]["text"]
+    conn.close()
+    return text
