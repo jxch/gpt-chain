@@ -52,6 +52,18 @@ def query(question):
                  json.dumps(param), headers)
     res = conn.getresponse()
     data = res.read()
-    text = eval(data.decode("utf-8"))["candidates"][0]["content"]["parts"][0]["text"]
-    conn.close()
-    return text
+    print(data.decode("utf-8"))
+    res_obj = eval(data.decode("utf-8"))
+    if res_obj["candidates"][0]["finishReason"] == "STOP":
+        text = res_obj["candidates"][0]["content"]["parts"][0]["text"]
+        conn.close()
+
+        if "citationMetadata" in res_obj["candidates"][0]:
+            text += "\n\n关于本段回答参考资料：\n"
+            for item in res_obj["candidates"][0]["citationMetadata"]["citationSources"]:
+                text += item["uri"] + "\n"
+
+        return text
+
+
+

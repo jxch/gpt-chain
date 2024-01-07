@@ -5,23 +5,25 @@ import os
 from transformers import Conversation
 from db import search_contents
 from gmini import query
+import roles
 
-# Print all available providers
-print([
-    provider.__name__
-    for provider in g4f.Provider.__providers__
-    if provider.working
-])
-
-
-# prompt = "\n\n--提示词：请尝试理解我的问题，翻译为英语之后再进行解答，最后将输出翻译为汉语，谢谢\n\n"
 
 def chat(content):
-    return ''.join(msg for msg in query(content))
+    res = query(content)
+    if res:
+        return ''.join(msg for msg in res)
+    else:
+        return ''.join(msg for msg in "稍等")
 
 
 def add_text(history, text):
-    history = history + [(text + "\n\n请根据以下参考内容回答上述问题：\n" + search_contents(text, num=8), None)]
+    history = history + [("\n\n请根据以下参考内容回答这个问题：" + text + "\n\n" + search_contents(text, num=8), None)]
+    return history, gr.update(value="", interactive=False)
+
+
+def his_text(history, text, role_name):
+    text, history = roles.add_role_text(text, history, role_name)
+    history = history + [(text, None)]
     return history, gr.update(value="", interactive=False)
 
 
@@ -67,6 +69,7 @@ with gr.Blocks() as demo:
     )
 
     with gr.Row():
+        role = gr.Dropdown(choices=["默认", "编程助手"], show_label=False)
         txt = gr.Textbox(
             scale=4,
             show_label=False,
@@ -74,14 +77,17 @@ with gr.Blocks() as demo:
             container=False,
             lines=2,
         )
+        pa_btn = gr.Button("知识库")
         btn = gr.UploadButton("📁", file_types=['txt'])
 
-    txt_msg = txt.submit(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
+    txt_msg = txt.submit(his_text, [chatbot, txt, role], [chatbot, txt], queue=False).then(
         bot, chatbot, chatbot
     )
     txt_msg.then(lambda: gr.update(interactive=True), None, [txt], queue=False)
     file_msg = btn.upload(add_file, [chatbot, btn], [chatbot], queue=False).then(
         bot, chatbot, chatbot
     )
+    pa_btn.click(add_text, [chatbot, txt], [chatbot, txt], queue=False).then(
+        bot, chatbot, chatbot).then(lambda: gr.update(interactive=True), None, [txt], queue=False)
 
 demo.launch()
