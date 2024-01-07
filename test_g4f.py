@@ -18,7 +18,7 @@ print([
 def chat(content):
     response = g4f.ChatCompletion.create(
         model=g4f.models.gpt_4,
-        provider=g4f.Provider.Llama2,
+        provider=g4f.Provider.PerplexityAi,
         messages=[{"role": "user", "content": content}],
         proxy="http://127.0.0.1:10809",
         # stream=True,
